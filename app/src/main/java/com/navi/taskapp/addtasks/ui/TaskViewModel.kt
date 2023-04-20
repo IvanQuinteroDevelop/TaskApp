@@ -1,19 +1,35 @@
 package com.navi.taskapp.addtasks.ui
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.navi.taskapp.addtasks.domain.AddTaskUseCase
+import com.navi.taskapp.addtasks.domain.DeleteTaskUseCase
+import com.navi.taskapp.addtasks.domain.GetTaskUseCase
+import com.navi.taskapp.addtasks.domain.UpdateTaskUseCase
+import com.navi.taskapp.addtasks.ui.TasksUiState.*
 import com.navi.taskapp.addtasks.ui.model.TaskModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class TaskViewModel @Inject constructor(): ViewModel() {
+@HiltViewModel
+class TaskViewModel @Inject constructor(
+    private val addTaskUseCase: AddTaskUseCase,
+    private val updateTaskUseCase: UpdateTaskUseCase,
+    private val deleteTaskUseCase: DeleteTaskUseCase,
+    getTaskUseCase: GetTaskUseCase
+) : ViewModel() {
+
+    val uiState: StateFlow<TasksUiState> = getTaskUseCase().map(::Success)
+        .catch { Error(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Loading)
 
     private val _showDialog = MutableLiveData<Boolean>()
     val showDialog: LiveData<Boolean> = _showDialog
 
-    private val _tasks = mutableStateListOf<TaskModel>()
-    val tasks: List<TaskModel> = _tasks
 
     fun changeDialogValue(showDialog: Boolean) {
         _showDialog.value = showDialog
@@ -21,19 +37,22 @@ class TaskViewModel @Inject constructor(): ViewModel() {
 
     fun onCreateTask(task: String) {
         changeDialogValue(false)
-        _tasks.add(TaskModel(task = task))
+
+        viewModelScope.launch {
+            addTaskUseCase.invoke(TaskModel(task = task))
+        }
     }
 
     fun onCheckBoxSelected(taskModel: TaskModel) {
-        val index = _tasks.indexOf(taskModel)
-        _tasks[index] = _tasks[index].let {
-            it.copy(selected = !it.selected)
+        viewModelScope.launch {
+            updateTaskUseCase.invoke(taskModel.copy(selected = !taskModel.selected))
         }
     }
 
     fun onRemoveItem(taskModel: TaskModel) {
-        val taskToRemove = _tasks.find { it.id == taskModel.id }
-        _tasks.remove(taskToRemove)
+        viewModelScope.launch {
+            deleteTaskUseCase.invoke(taskModel)
+        }
     }
 
 }
