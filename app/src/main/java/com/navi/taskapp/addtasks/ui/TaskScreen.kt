@@ -5,9 +5,9 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -25,6 +25,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.navi.taskapp.addtasks.ui.model.TaskModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskScreen(taskViewModel: TaskViewModel) {
 
@@ -43,20 +44,55 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
 
     when (uiState) {
         is TasksUiState.Error -> {}
-        TasksUiState.Loading -> { CircularProgressIndicator() }
+        TasksUiState.Loading -> {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
         is TasksUiState.Success -> {
-            Box(Modifier.fillMaxSize()) {
-                AddTaskDialog(showDialog,
-                    onDismiss = {
-                        taskViewModel.changeDialogValue(false)
-                    }, onTaskAdded = {
-                        taskViewModel.onCreateTask(it)
-                    })
-                TaskList(Modifier.align(Alignment.TopStart), taskViewModel, (uiState as TasksUiState.Success).tasks)
-                FabDialog(Modifier.align(Alignment.BottomEnd), taskViewModel)
+            Scaffold(
+                topBar = {
+                    TaskTopBar()
+                },
+                floatingActionButton = { FabDialog(Modifier.padding(1.dp), taskViewModel) },
+                bottomBar = {}
+            ) { paddingValue ->
+                Box(
+                    Modifier
+                        .padding(paddingValue)
+                        .background(MaterialTheme.colorScheme.background)
+                ) {
+                    AddTaskDialog(showDialog,
+                        onDismiss = {
+                            taskViewModel.changeDialogValue(false)
+                        }, onTaskAdded = {
+                            taskViewModel.onCreateTask(it)
+                        })
+                    TaskList(
+                        Modifier.align(Alignment.TopStart),
+                        taskViewModel,
+                        (uiState as TasksUiState.Success).tasks
+                    )
+                }
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TaskTopBar() {
+    TopAppBar(
+        title = { Text(text = "Tasks") },
+        colors = TopAppBarDefaults.smallTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+        )
+    )
 }
 
 @Composable
@@ -64,7 +100,7 @@ fun TaskList(modifier: Modifier, taskViewModel: TaskViewModel, tasks: List<TaskM
 
     LazyColumn(modifier = modifier, content = {
         items(tasks, key = { it.id }) { task ->
-           ItemTask(task, taskViewModel)
+            ItemTask(task, taskViewModel)
         }
     })
 }
@@ -77,7 +113,9 @@ fun ItemTask(taskModel: TaskModel, taskViewModel: TaskViewModel) {
             .padding(vertical = 8.dp, horizontal = 16.dp)
             .pointerInput(Unit) {
                 detectTapGestures(onLongPress = { taskViewModel.onRemoveItem(taskModel) })
-            }, elevation = 8.dp
+            },
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Row(
             Modifier
@@ -85,9 +123,9 @@ fun ItemTask(taskModel: TaskModel, taskViewModel: TaskViewModel) {
                 .padding(8.dp), verticalAlignment = Alignment.CenterVertically
         ) {
             Text(text = taskModel.task, modifier = Modifier.weight(1f), fontSize = 16.sp)
-            Checkbox(
+            /*Checkbox(
                 checked = taskModel.selected,
-                onCheckedChange = { taskViewModel.onCheckBoxSelected(taskModel) })
+                onCheckedChange = { taskViewModel.onCheckBoxSelected(taskModel) })*/
         }
     }
 }
@@ -103,6 +141,7 @@ fun FabDialog(modifier: Modifier, taskViewModel: TaskViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddTaskDialog(show: Boolean, onDismiss: () -> Unit, onTaskAdded: (String) -> Unit) {
     var myTasks by rememberSaveable {
