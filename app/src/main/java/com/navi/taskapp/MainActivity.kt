@@ -8,8 +8,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
-import com.navi.taskapp.addtasks.ui.TaskScreen
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.navi.taskapp.addtasks.ui.composables.TaskListScreen
 import com.navi.taskapp.addtasks.ui.TaskViewModel
+import com.navi.taskapp.addtasks.ui.composables.AddTaskScreen
+import com.navi.taskapp.addtasks.ui.navigation.TaskRoutes
 import com.navi.taskapp.ui.theme.TaskAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -27,7 +32,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    TaskScreen(taskViewModel)
+                    val navigationController = rememberNavController()
+                    NavHost(navController = navigationController, startDestination = TaskRoutes.TaskListScreen.route) {
+                        composable(TaskRoutes.TaskListScreen.route) { TaskListScreen(taskViewModel = taskViewModel, navigationController)}
+                        composable(TaskRoutes.TaskCreationScreen.route) { AddTaskScreen(taskViewModel = taskViewModel, navigationController)}
+                    }
                 }
             }
         }

@@ -13,18 +13,18 @@ class TaskScreenTest {
 
     @Test
     fun whenDialogGetATrue_thenShowDialog() {
-        composeTestRule.setContent {
+        /*composeTestRule.setContent {
             AddTaskDialog(show = true, onDismiss = {}, onTaskAdded = {})
-        }
+        }*/
 
         composeTestRule.onNodeWithTag("dialogTask").assertIsDisplayed()
     }
 
     @Test
     fun whenDialogGetAFalse_thenDoNotShowDialog() {
-        composeTestRule.setContent {
+        /*composeTestRule.setContent {
             AddTaskDialog(show = false, onDismiss = {}, onTaskAdded = {})
-        }
+        }*/
 
         composeTestRule.onNodeWithTag("dialogTask").assertDoesNotExist()
     }

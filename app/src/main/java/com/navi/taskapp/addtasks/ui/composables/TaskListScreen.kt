@@ -1,35 +1,37 @@
-package com.navi.taskapp.addtasks.ui
+package com.navi.taskapp.addtasks.ui.composables
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavHostController
+import com.navi.taskapp.addtasks.ui.TaskViewModel
+import com.navi.taskapp.addtasks.ui.TasksUiState
 import com.navi.taskapp.addtasks.ui.model.TaskModel
+import com.navi.taskapp.addtasks.ui.navigation.TaskRoutes
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskScreen(taskViewModel: TaskViewModel) {
+fun TaskListScreen(taskViewModel: TaskViewModel, navigationController: NavHostController) {
 
-    val showDialog: Boolean by taskViewModel.showDialog.observeAsState(initial = false)
     val lifecycle = LocalLifecycleOwner.current.lifecycle
 
     val uiState by produceState<TasksUiState>(
@@ -59,7 +61,7 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                 topBar = {
                     TaskTopBar()
                 },
-                floatingActionButton = { FabDialog(Modifier.padding(1.dp), taskViewModel) },
+                floatingActionButton = { FabAddTask(Modifier.padding(1.dp), navigationController) },
                 bottomBar = {}
             ) { paddingValue ->
                 Box(
@@ -82,7 +84,8 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
 @Composable
 fun TaskTopBar() {
     TopAppBar(
-        title = { Text(text = "Tasks") },
+        title = { Text(text = "Tasks", modifier = Modifier.padding(start = 8.dp)) },
+        navigationIcon = { Icon(Icons.Filled.Menu, contentDescription = "back")},
         colors = TopAppBarDefaults.smallTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
         )
@@ -104,74 +107,32 @@ fun ItemTask(taskModel: TaskModel, taskViewModel: TaskViewModel) {
     Card(
         Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .padding(vertical = 9.dp, horizontal = 19.dp)
             .pointerInput(Unit) {
                 detectTapGestures(onLongPress = { taskViewModel.onRemoveItem(taskModel) })
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        shape = RoundedCornerShape(5.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
-        Row(
+        Column(
             Modifier
                 .fillMaxWidth()
-                .padding(8.dp), verticalAlignment = Alignment.CenterVertically
+                .padding(12.dp), horizontalAlignment = Alignment.Start
         ) {
-            Text(text = taskModel.task, modifier = Modifier.weight(1f), fontSize = 16.sp)
-            /*Checkbox(
-                checked = taskModel.selected,
-                onCheckedChange = { taskViewModel.onCheckBoxSelected(taskModel) })*/
+            Text(text = taskModel.taskName, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, modifier = Modifier.padding(vertical = 8.dp))
+            Text(text = taskModel.date, fontSize = 14.sp)
+            Text(text = taskModel.type, fontSize = 14.sp)
         }
     }
 }
 
 @Composable
-fun FabDialog(modifier: Modifier, taskViewModel: TaskViewModel) {
+fun FabAddTask(modifier: Modifier, navigationController: NavHostController) {
     FloatingActionButton(
-        onClick = {
-            taskViewModel.changeDialogValue(true)
-        }, modifier = modifier.padding(16.dp)
+        onClick = { navigationController.navigate(TaskRoutes.TaskCreationScreen.route) }
+        , modifier = modifier.padding(16.dp)
     ) {
         Icon(Icons.Filled.Add, contentDescription = "add button")
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AddTaskDialog(show: Boolean, onDismiss: () -> Unit, onTaskAdded: (String) -> Unit) {
-    var myTasks by rememberSaveable {
-        mutableStateOf("")
-    }
-
-    if (show) {
-        Dialog(onDismissRequest = { onDismiss() }) {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(12.dp)
-                    .testTag("dialogTask")
-            ) {
-                Text(
-                    text = "Add your task",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                TextField(
-                    value = myTasks,
-                    onValueChange = { myTasks = it },
-                    singleLine = true,
-                    maxLines = 1
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = {
-                    onTaskAdded(myTasks)
-                    myTasks = ""
-                }, modifier = Modifier.fillMaxWidth()) {
-                    Text(text = "Add task")
-                }
-            }
-        }
     }
 }
