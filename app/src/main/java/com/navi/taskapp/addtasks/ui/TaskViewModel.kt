@@ -35,11 +35,11 @@ class TaskViewModel @Inject constructor(
         _showDialog.value = showDialog
     }
 
-    fun onCreateTask(task: String) {
+    fun onCreateTask(task: TaskModel) {
         changeDialogValue(false)
 
         viewModelScope.launch {
-            addTaskUseCase.invoke(TaskModel(task = task))
+            addTaskUseCase.invoke(task)
         }
     }
 

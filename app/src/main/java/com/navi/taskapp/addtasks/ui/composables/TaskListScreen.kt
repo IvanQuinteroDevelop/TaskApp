@@ -67,12 +67,6 @@ fun TaskScreen(taskViewModel: TaskViewModel) {
                         .padding(paddingValue)
                         .background(MaterialTheme.colorScheme.background)
                 ) {
-                    AddTaskDialog(showDialog,
-                        onDismiss = {
-                            taskViewModel.changeDialogValue(false)
-                        }, onTaskAdded = {
-                            taskViewModel.onCreateTask(it)
-                        })
                     TaskList(
                         Modifier.align(Alignment.TopStart),
                         taskViewModel,
