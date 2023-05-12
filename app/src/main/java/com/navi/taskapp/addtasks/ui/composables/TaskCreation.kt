@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Timer
@@ -15,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -53,13 +55,14 @@ fun AddTaskScreen(taskViewModel: TaskViewModel, navigationController: NavHostCon
 
     ClockDialog(
         state = timeState,
-        config = ClockConfig(defaultTime = LocalTime.now()),
+        config = ClockConfig(defaultTime = LocalTime.now(), is24HourFormat = true),
         selection = ClockSelection.HoursMinutes { hours, minutes ->
             timeSelected = "$hours : $minutes"
         })
     Box(
         Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
         Text(
@@ -84,6 +87,7 @@ fun AddTaskScreen(taskViewModel: TaskViewModel, navigationController: NavHostCon
                 value = taskName,
                 onValueChange = { taskName = it },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(5.dp),
                 maxLines = 1,
@@ -204,7 +208,7 @@ fun AddTaskScreen(taskViewModel: TaskViewModel, navigationController: NavHostCon
                     )
                     navigationController.popBackStack()
                 },
-                enabled = taskName.isNotEmpty() && dateSelected != "Select date"
+                enabled = taskName.isNotEmpty() && dateSelected != "Select date" && timeSelected != "Select time"
             ) {
                 Text(text = "Add task", fontSize = 16.sp)
             }
